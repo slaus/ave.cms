@@ -69,7 +69,10 @@
 	}
 
 	//-- Подгружаем настройки системы
-	require(dirname(__FILE__) . '/config.php');
+	require (dirname(__FILE__) . '/config.php');
+
+	//-- Подгружаем функции логирования
+	require_once BASE_DIR . '/functions/func.logs.php';
 
 	//-- Разрешенные расширения файлов
 	$allowedExt = array('jpg', 'jpeg', 'png', 'gif', 'JPG', 'JPEG', 'PNG', 'GIF');
@@ -135,8 +138,17 @@
 
 	$lenThumbDir = strlen(THUMBNAIL_DIR);
 
+	// --
 	if ($lenThumbDir && substr($thumbPath, -$lenThumbDir) != THUMBNAIL_DIR)
+	{
+		if (! file_exists($baseDir . $imagefile))
+		{
+			report404();
+
+			header($_SERVER['SERVER_PROTOCOL'] . ' 404 Not Found');
+		}
 		exit(0);
+	}
 
 	$thumbPath = $baseDir . '/' . UPLOAD_DIR . '/' . $thumbPath;
 	$imagePath = $lenThumbDir ? dirname($thumbPath) : $thumbPath;
@@ -145,7 +157,7 @@
 	$nameParts = explode('.', $thumbName);
 	$countParts = count($nameParts);
 
-	if ($countParts < 2 || !in_array(strtolower(end($nameParts)), $allowedExt))
+	if ($countParts < 2 || ! in_array(strtolower(end($nameParts)), $allowedExt))
 		exit(0);
 
 	$matches = array();
@@ -156,6 +168,8 @@
 	//-- Если нет параметров, отдаем 404
 	if (! isset($matches[0]))
 	{
+		report404();
+
 		header($_SERVER['SERVER_PROTOCOL'] . ' 404 Not Found');
 		exit(0);
 	}
@@ -167,6 +181,8 @@
 	{
 		if (! in_array($check, $allowedAdmin))
 		{
+			report404();
+
 			header($_SERVER['SERVER_PROTOCOL'] . ' 404 Not Found');
 			exit(0);
 		}
@@ -195,7 +211,7 @@
 
 		if (file_exists($l . '.tmp'))
 		{
-			include_once(BASE_DIR.'/functions/func.common.php');
+			include_once (BASE_DIR . '/functions/func.common.php');
 
 			$abs_path = dirname((!strstr($_SERVER['PHP_SELF'], $_SERVER['SCRIPT_NAME']) && (@php_sapi_name() == 'cgi'))
 				? $_SERVER['PHP_SELF']
@@ -209,7 +225,7 @@
 
 			if ($img)
 			{
-				file_put_contents("$imagePath/$imageName",$img);
+				file_put_contents("$imagePath/$imageName", $img);
 
 				setEXIFF("$imagePath/$imageName");
 
@@ -224,12 +240,12 @@
 	{
 		header($_SERVER['SERVER_PROTOCOL'] . ' 404 Not Found');
 
+		report404();
+
 		$imageName = 'noimage.png';
 
 		if (! file_exists("$imagePath/$imageName"))
-		{
 			$imagePath = $baseDir . '/' . UPLOAD_DIR . '/images';
-		}
 
 		if (! file_exists("$imagePath/$imageName"))
 			exit(0);
@@ -237,7 +253,7 @@
 		$save = false;
 	}
 
-	require $baseDir.'/class/class.thumbnail.php';
+	require $baseDir . '/class/class.thumbnail.php';
 
 	$thumb = new Image_Toolbox("$imagePath/$imageName");
 
@@ -281,7 +297,7 @@
 	//-- Если можно сохранять миниатюру
 	if ($save)
 	{
-		if (! file_exists($thumbPath) && ! mkdir($thumbPath, 0777))
+		if (! file_exists($thumbPath) && ! mkdir($thumbPath, 0777, true))
 			exit(0);
 
 		if ($thumb->save("$thumbPath/$thumbName"))

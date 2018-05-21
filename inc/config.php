@@ -12,7 +12,7 @@
 	 */
 
 	@define('APP_NAME', 'AVE.cms');
-	@define('APP_VERSION', '3.24');
+	@define('APP_VERSION', '3.25');
 	@define('APP_INFO', '<a target="_blank" href="https://www.ave-cms.ru/">Ave-Cms.Ru</a> '.'&copy; 2007-' . date('Y'));
 
 	$GLOBALS['CMS_CONFIG']['USER_IP'] = array('DESCR' =>'Использовать IP для автологина на сайте','default'=>false,'TYPE'=>'bool','VARIANT'=>'');
@@ -104,7 +104,7 @@
 	$GLOBALS['CMS_CONFIG']['WATERMARKS_DIR'] = array('DESCR' => 'Директория для хранения оригиналов изображений (watermark)','default'=>'watermarks','TYPE'=>'string','VARIANT'=>'');
 	$GLOBALS['CMS_CONFIG']['WATERMARKS_FILE'] = array('DESCR' => 'Файл watermark','default'=>'uploads/watermark.png','TYPE'=>'string','VARIANT'=>'');
 
-	$GLOBALS['CMS_CONFIG']['SESSION_SAVE_HANDLER'] = array('DESCR' => 'Хранить сессии в БД','default'=>true,'TYPE'=>'bool','VARIANT'=>'');
+	$GLOBALS['CMS_CONFIG']['SESSION_SAVE_HANDLER'] = array('DESCR' => 'Хранение сессий', 'default'=>'mysql', 'TYPE'=>'dropdown', 'VARIANT' => array('mysql', 'files', 'memcached'));
 	$GLOBALS['CMS_CONFIG']['SESSION_LIFETIME'] = array('DESCR' => 'Время жизни сессии (Значение по умолчанию 24 часа)','default'=>60*60*24,'TYPE'=>'integer','VARIANT'=>'');
 	$GLOBALS['CMS_CONFIG']['COOKIE_LIFETIME'] = array('DESCR' => 'Время жизни cookie автологина (60*60*24*14 - 2 недели)','default'=>60*60*24*14,'TYPE'=>'integer','VARIANT'=>'');
 
@@ -124,14 +124,14 @@
 	$GLOBALS['CMS_CONFIG']['SMARTY_USE_SUB_DIRS'] = array('DESCR' => 'Создание папок для кэширования Установите это в false если ваше окружение PHP не разрешает создание директорий от имени Smarty. Поддиректории более эффективны, так что используйте их, если можете.','default'=>true,'TYPE'=>'bool','VARIANT'=>'');
 	$GLOBALS['CMS_CONFIG']['CACHE_DOC_TPL'] = array('DESCR' => 'Кэширование скомпилированных шаблонов документов','default'=>true,'TYPE'=>'bool','VARIANT'=>'');
 	$GLOBALS['CMS_CONFIG']['CACHE_DOC_FILE'] = array('DESCR' => 'Кэширование скомпилированных шаблонов документов в файлах','default'=>true,'TYPE'=>'bool','VARIANT'=>'');
-	$GLOBALS['CMS_CONFIG']['CACHE_DOC_SQL'] = array('DESCR' => 'Кэширование SQL запроса информации о документе','default'=>0,'TYPE'=>'integer','VARIANT'=>'');
-	$GLOBALS['CMS_CONFIG']['SYSTEM_CACHE_LIFETIME'] = array('DESCR' => 'Время жизни кеша запроса к настройкам системы (60*60*24*14 - 2 недели)','default'=>0,'TYPE'=>'integer','VARIANT'=>'');
+
+	$GLOBALS['CMS_CONFIG']['SITEMAP_CACHE_LIFETIME'] = array('DESCR' => 'Время жизни кеша для карты сайта (60*60*24*14 - 2 недели)','default'=>0,'TYPE'=>'integer','VARIANT'=>'');
 
 	$GLOBALS['CMS_CONFIG']['YANDEX_MAP_API_KEY'] = array('DESCR' => 'Yandex MAP API REY','default'=>'','TYPE'=>'string','VARIANT'=>'');
 	$GLOBALS['CMS_CONFIG']['GOOGLE_MAP_API_KEY'] = array('DESCR' => 'Google MAP API REY','default'=>'','TYPE'=>'string','VARIANT'=>'');
 
-	$GLOBALS['CMS_CONFIG']['Memcached_Server'] = array('DESCR' => 'Адрес Memcached сервера','default'=>'','TYPE'=>'string','VARIANT'=>'');
-	$GLOBALS['CMS_CONFIG']['Memcached_Port'] = array('DESCR' => 'Порт Memcached сервера','default'=>'','TYPE'=>'string','VARIANT'=>'');
+	$GLOBALS['CMS_CONFIG']['MEMCACHED_SERVER'] = array('DESCR' => 'Адрес Memcached сервера','default'=>'','TYPE'=>'string','VARIANT'=>'');
+	$GLOBALS['CMS_CONFIG']['MEMCACHED_PORT'] = array('DESCR' => 'Порт Memcached сервера','default'=>'','TYPE'=>'string','VARIANT'=>'');
 
 	$GLOBALS['CMS_CONFIG']['DB_EXPORT_GZ'] = array('DESCR' => 'Создание резервной копии базы данных со сжатием','default'=>false,'TYPE'=>'bool','VARIANT'=>'');
 	$GLOBALS['CMS_CONFIG']['DB_EXPORT_TPL'] = array('DESCR' => 'Шаблон имени файла экспорта бд (%SERVER%,%DATE%,%TIME%)','default'=>'%SERVER%_DB_BackUP_%DATE%_%TIME%','TYPE'=>'string','VARIANT'=>'');

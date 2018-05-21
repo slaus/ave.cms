@@ -11,35 +11,23 @@
 	 * @license GPL v.2
 	 */
 
-	header ('Content-type: text/xml');
 
 	define ('START_MICROTIME', microtime());
 
-	define ('BASE_DIR', str_replace("\\", "/", rtrim($_SERVER['DOCUMENT_ROOT'],'/')));
+	define ('BASE_DIR', str_replace("\\", "/", rtrim($_SERVER['DOCUMENT_ROOT'], '/')));
 
-	if (! @filesize(BASE_DIR . '/inc/db.config.php'))
+	if (! @filesize(BASE_DIR . '/config/db.config.php'))
 	{
 		header ('Location: Location:install/index.php');
 		exit;
 	}
 
 	if (substr($_SERVER['REQUEST_URI'], 0, strlen('/index.php?')) != '/index.php?')
-	{
 		$_SERVER['REQUEST_URI'] = str_ireplace('_','-',$_SERVER['REQUEST_URI']);
-	}
 
 	require_once (BASE_DIR . '/inc/init.php');
 
 	$abs_path = str_ireplace(BASE_DIR, '/', str_replace("\\", "/", dirname(dirname(__FILE__))));
-
-	if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off')
-	{
-		$domain = 'https://'.$_SERVER['SERVER_NAME'];
-	}
-	else
-		{
-			$domain = 'http://'.$_SERVER['SERVER_NAME'];
-		}
 
 	// Проверяем настройку на публикацию документов
 	$publish = get_settings('use_doctime')
@@ -64,101 +52,140 @@
 		'6' => 'never'
 	);
 
+	if (! isset($_REQUEST['id'])):
+
 	// Вытаскиваем кол-во документов
 	$sql = "
-		SELECT STRAIGHT_JOIN SQL_CALC_FOUND_ROWS
-			COUNT(doc.Id)
+		SELECT STRAIGHT_JOIN
+			COUNT(doc.Id) AS count
 		FROM
-			" . PREFIX . "_documents doc
+			" . PREFIX . "_documents AS doc
 		LEFT JOIN
-			" . PREFIX . "_rubrics rub
+			" . PREFIX . "_rubrics AS rub
 			ON rub.Id = doc.rubric_id
 		LEFT JOIN
-			" . PREFIX . "_rubric_permissions rubperm
-			ON rubperm.rubric_id = doc.rubric_id
+			" . PREFIX . "_rubric_templates AS tmpl
+			ON tmpl.rubric_id = rub.Id
+		LEFT JOIN
+			" . PREFIX . "_rubric_permissions AS rubperm
+			ON rubperm.rubric_id = rub.Id
 		WHERE
-			rub.rubric_template NOT LIKE ''
+			# Не пустой шаблон
+			(rub.rubric_template NOT LIKE '' OR tmpl.template NOT LIKE '')
+			# Статус документа = 1
 			AND doc.document_status = 1
+			# Документ не удален
 			AND doc.document_deleted = 1
 			$publish
+			# Документ не равен 1
+			AND doc.Id != 1
+			# Документ не равен 404 ошибке
 			AND doc.Id != " . PAGE_NOT_FOUND_ID . "
+			# Документы разрешены для индексации
 			AND (document_meta_robots NOT LIKE '%noindex%' or document_meta_robots NOT LIKE '%nofollow%')
+			# Разрешены для просмотра гостям
 			AND (rubperm.user_group_id = 2 AND rubperm.rubric_permission LIKE '%docread%')
 	";
 
-	$num = $AVE_DB->Query($sql)->GetCell();
+	$num = $AVE_DB->Query($sql, SITEMAP_CACHE_LIFETIME, 'sitemap')->GetCell();
 
 	if ($num > $_end)
 		$parts = ceil($num/$_end);
 
-	if (! isset($_REQUEST['id'])):
+		header ('Content-type: text/xml');
+
 		echo '<?xml version="1.0" encoding="UTF-8"?>' . PHP_EOL;
 		echo '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . PHP_EOL;
 
 	for ($i = 1; $i <= $parts; $i++):
 ?>
 	<sitemap>
-		<loc><?= $domain . '/sitemap-' . $i . '.xml'; ?></loc>
-		<lastmod><?= date("c"); ?></lastmod>
+		<loc><?php echo HOST . '/sitemap-' . $i . '.xml'; ?></loc>
+		<lastmod><?php echo date("c"); ?></lastmod>
 	</sitemap>
-<? endfor;
+<?php endfor;
 	echo '</sitemapindex>';
 	else:
 ?>
-<?
+<?php
 	if ((int)$_REQUEST['id'] > 1)
 		$_start = ((int)$_REQUEST['id']-1) * $_end;
 
 	$sql = "
-		SELECT STRAIGHT_JOIN SQL_CALC_FOUND_ROWS
+		SELECT STRAIGHT_JOIN
 			doc.Id,
 			doc.document_alias,
 			doc.document_published,
 			doc.document_changed,
 			doc.document_sitemap_freq,
 			doc.document_sitemap_pr
-		FROM " . PREFIX . "_documents doc
-		LEFT JOIN " . PREFIX . "_rubrics rub
+		FROM
+			" . PREFIX . "_documents AS doc
+		LEFT JOIN
+			" . PREFIX . "_rubrics AS rub
 			ON rub.Id = doc.rubric_id
-		LEFT JOIN " . PREFIX . "_rubric_permissions rubperm
-			ON rubperm.rubric_id = doc.rubric_id
+		LEFT JOIN
+			" . PREFIX . "_rubric_templates AS tmpl
+			ON tmpl.rubric_id = rub.Id
+		LEFT JOIN
+			" . PREFIX . "_rubric_permissions AS rubperm
+			ON rubperm.rubric_id = rub.Id
 		WHERE
-			rub.rubric_template NOT LIKE ''
+			# Не пустой шаблон
+			(rub.rubric_template NOT LIKE '' OR tmpl.template NOT LIKE '')
+			# Статус документа = 1
 			AND doc.document_status = 1
+			# Документ не удален
 			AND doc.document_deleted = 1
 			$publish
+			# Документ не равен 1
+			AND doc.Id != 1
+			# Документ не равен 404 ошибке
 			AND doc.Id != " . PAGE_NOT_FOUND_ID . "
+			# Документы разрешены для индексации
 			AND (document_meta_robots NOT LIKE '%noindex%' or document_meta_robots NOT LIKE '%nofollow%')
+			# Разрешены для просмотра гостям
 			AND (rubperm.user_group_id = 2 AND rubperm.rubric_permission LIKE '%docread%')
+		GROUP BY doc.Id
 		ORDER BY doc.document_published ASC
-		LIMIT ".$_start.",".$_end."
+		LIMIT ".$_start.",".$_end.";
 	";
 
-	$res = $AVE_DB->Query($sql);
+	$res = $AVE_DB->Query($sql, SITEMAP_CACHE_LIFETIME, 'sitemap', true, '.limit');
+
+	if (! $res->NumRows())
+	{
+		report404();
+		$AVE_DB->clearCurrentCache('sitemap', $sql, '.limit');
+		header ($_SERVER['SERVER_PROTOCOL'] . ' 404 Not Found', true);
+		exit;
+	}
+
+	header ('Content-type: text/xml');
 
 	echo '<?xml version="1.0" encoding="UTF-8"?>' . PHP_EOL;
 	echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . PHP_EOL;
 	if ((int)$_REQUEST['id'] == 1):
 ?>
 	<url>
-		<loc><? echo $domain . '/'; ?></loc>
-		<lastmod><? echo date("c", time()); ?></lastmod>
+		<loc><?php echo HOST . '/'; ?></loc>
+		<lastmod><?php echo date("c", time()); ?></lastmod>
 		<changefreq>weekly</changefreq>
 		<priority>0.8</priority>
 	</url>
-<? endif; ?>
-<?
+<?php endif; ?>
+<?php
 	while($row = $res->FetchAssocArray()):
 		$document_alias = $abs_path . $row['document_alias'] . URL_SUFF;
-		$document_alias = $domain . str_ireplace($abs_path . '/' . URL_SUFF, '/', $document_alias);
+		$document_alias = HOST . str_ireplace($abs_path . '/' . URL_SUFF, '/', $document_alias);
 		$date = $row["document_published"] ? date("c", $row["document_published"]) : date("c");
 ?>
 	<url>
-		<loc><? echo $document_alias; ?></loc>
-		<lastmod><? echo $date; ?></lastmod>
-		<changefreq><? echo $changefreq[$row['document_sitemap_freq']]; ?></changefreq>
-		<priority><? echo $row['document_sitemap_pr']; ?></priority>
+		<loc><?php echo $document_alias; ?></loc>
+		<lastmod><?php echo $date; ?></lastmod>
+		<changefreq><?php echo $changefreq[$row['document_sitemap_freq']]; ?></changefreq>
+		<priority><?php echo $row['document_sitemap_pr']; ?></priority>
 	</url>
-<? endwhile; ?>
+<?php endwhile; ?>
 </urlset>
-<? endif; ?>
+<?php endif; ?>

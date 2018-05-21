@@ -36,7 +36,7 @@ $(document).ready(function(){ldelim}
 <div class="title">
 	<h5>{#RUBRIC_TMPLS_HEAD#}</h5>
 	<div class="num">
-		<a class="basicNum" href="index.php?do=rubs&action=template&Id={$smarty.request.Id|escape}&cp={$sess}">{#RUBRIK_EDIT_TEMPLATE#}</a>
+		<a class="basicNum greenNum" href="index.php?do=rubs&action=template&Id={$smarty.request.Id|escape}&cp={$sess}">{#RUBRIK_EDIT_TEMPLATE#}</a>
 	</div>
 </div>
 
@@ -90,7 +90,7 @@ $(document).ready(function(){ldelim}
 		<li class="activeTab"><a href="#tab1">{#RUBRIC_TMPLS_HEAD#}</a></li>
 		{if check_permission('rubric_edit')}<li class=""><a href="#tab2">{#RUBRIC_TMPLS_ADD#}</a></li>{/if}
 		<div class="num">
-			<a class="basicNum" href="index.php?do=rubs&action=tmpls_from&rubric_id={$smarty.request.Id|escape}&cp={$sess}">{#RUBRIC_TMPLS_FROM#}</a>
+			<a class="basicNum greenNum" href="index.php?do=rubs&action=tmpls_from&rubric_id={$smarty.request.Id|escape}&cp={$sess}">{#RUBRIC_TMPLS_FROM#}</a>
 		</div>
 	</ul>
 	<div class="tab_container">
@@ -104,7 +104,6 @@ $(document).ready(function(){ldelim}
 					<col width="20">
 					<col width="20">
 					<col width="20">
-					<col width="20">
 
 					{if $templates}
 					<thead>
@@ -113,7 +112,6 @@ $(document).ready(function(){ldelim}
 						<td>{#RUBRIC_TMPLS_NAME#}</td>
 						<td>{#RUBRIC_TMPLS_AUTHOR#}</td>
 						<td>{#RUBRIC_TMPLS_DATE#}</td>
-						<td align="center"><a href="javascript:void(0);" class="topDir icon_sprite ico_list float" style="cursor: help; display: inline-block" title="{#RUBRIC_TMPLS_COUNT_DOCS#}"></a></td>
 						{if check_permission('rubric_edit')}<td colspan="3">{#RUBRIC_TMPLS_ACTIONS#}</td>{/if}
 					</tr>
 					</thead>
@@ -137,10 +135,6 @@ $(document).ready(function(){ldelim}
 
 							<td align="center">
 								<span class="date_text dgrey">{$template->created|date_format:$TIME_FORMAT|pretty_date}</span>
-							</td>
-
-							<td>
-								<strong class="code">{$template->doc_count}</strong>
 							</td>
 
 							{if check_permission('rubric_edit')}

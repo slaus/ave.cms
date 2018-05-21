@@ -541,6 +541,19 @@
 		}
 
 
+		public static function _errorSql ($header, $body, $caller, $exit = false)
+		{
+
+			Debug::_echo(preg_replace('/(\s)+/s', ' ', $header));
+			Debug::_echo(DB::queryList($body));
+			Debug::_echo($caller);
+
+			if ($exit)
+				exit;
+		}
+
+
+
 		/**
 		 * Вывод статистики
 		 */
@@ -639,6 +652,8 @@
 
 			$out = PHP_EOL;
 			$out .= '<link rel="stylesheet" href="/lib/debug/debug.css" />';
+			$out .= PHP_EOL;
+			$out .= '<script>window.jQuery || document.write(\'<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js">\x3C/script>\')</script>';
 			$out .= PHP_EOL;
 			$out .= '<script src="/lib/debug/debug.js"></script>';
 			$out .= PHP_EOL;
